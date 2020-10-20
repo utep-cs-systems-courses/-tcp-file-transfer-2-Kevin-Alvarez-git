@@ -1,10 +1,8 @@
 import socket
 from threading import Thread
 
-TCP_IP = 'localhost'
-TCP_PORT = 9001
-BUFFER_SIZE = 1024
-
+IP = 'localhost'
+PORT = 50001
 
 class ClientThread(Thread):
 
@@ -13,22 +11,20 @@ class ClientThread(Thread):
         self.ip = ip
         self.port = port
         self.sock = sock
-        print(" New thread started for "+ip+":"+str(port))
+        # thread initialized
 
     def run(self):
-        filename = 'anon234.jpeg'
-        f = open(filename, 'rb')
+        filename = 'file.txt'
+        f = open(filename, 'r')
         while True:
-            l = f.read(BUFFER_SIZE)
-            while (l):
-                self.sock.send(l)
-                #print('Sent ',repr(l))
-                l = f.read(BUFFER_SIZE)
-            if not l:
+            line = f.read(1024)
+            while (line):
+                self.sock.send(line)
+                line = f.read(1024)
+            if not line:
                 f.close()
                 self.sock.close()
                 break
-
 
 tcpsock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 tcpsock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -36,10 +32,10 @@ tcpsock.bind((TCP_IP, TCP_PORT))
 threads = []
 
 while True:
+    # listen and wait for connections
     tcpsock.listen(5)
-    print("Waiting for incoming connections...")
     (conn, (ip, port)) = tcpsock.accept()
-    print('Got connection from ', (ip, port))
+    # when we receive a connection
     newthread = ClientThread(ip, port, conn)
     newthread.start()
     threads.append(newthread)
